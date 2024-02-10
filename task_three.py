@@ -1,46 +1,33 @@
 import os
 import sys
 import pathlib
-import re
-from datetime import datetime
 from collections import Counter
 
-def load_logs(adress):
-    if os.path.exists(adress):
-        with open(adress, 'r', encoding='utf-8-sig') as f:
-            lines = f.readlines()
-            return lines
+mistake_dict = {'ERROR','INFO','DEBUG','WARNING'}
+
+def load_logs(file_path: str) -> list:
+    list_logs = []
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8-sig') as f:
+            for line in f.readlines():
+                list_logs.append(parse_log_line(line))
+        return list_logs
+
     else:
         print('The specified file does NOT exist')
 
 
-def parse_log_line(lines: str):
-    list = []
-    for line in lines:
-        dict ={}
+def parse_log_line(line: str)-> dict:
 
-        date_string = re.search(r'\d+\-\d+\-\d+',line).group()
-        date_date = datetime.strptime(date_string, "%Y-%m-%d").date()
-
-        time_string = re.search(r'\d+[:]\d+[:]\d+',line).group()
-        date_time = datetime.strptime(time_string, "%H:%M:%S").time()
-
-        error_type = re.search(r'[A-Z]+',line).group()
-
-        error_disc = re.search(r'[A-Z][a-z]\D+[^\n]',line).group()
-
-        dict['date'] = date_date
-        dict['time'] = date_time
-        dict['type'] = error_type
-        dict['discription'] = error_disc
-        
-        list.append(dict)
-    return list
+    date, time, log, *message = line.split()
+    mistake = ' '.join(message)
+    dict_={'date': date ,'time': time ,'type': log ,'mistake': mistake}
+    return dict_
 
 
-def count_logs_by_level(list):
+def count_logs_by_level(list) -> dict:
     errors_dict = Counter([d['type'] for d in list])
-    return(errors_dict)
+    return errors_dict
 
 
 def display_log_counts(errors_dict):
@@ -54,20 +41,19 @@ def filter_logs_by_level(list, level):
     print(f'Деталі логів для рівня {level}:')
     for item in list:
         if item['type']==level:
-            print(f'{item['date']} {item['time']} - {item['discription']}')
+            print(f'{item['date']} {item['time']} - {item['mistake']}')
 
 
 
 try:
     input = sys.argv[1]
     adress= pathlib.Path(input)
-    lines = load_logs(adress)
-    dict_lines = parse_log_line(lines)
+    dict_lines = load_logs(adress)
     conuted_logs = count_logs_by_level(dict_lines)
     display_log_counts(conuted_logs)
 
     log_level = sys.argv[2]
-    if log_level.upper() in conuted_logs.keys():
+    if log_level.upper() in mistake_dict:
         filter_logs_by_level(dict_lines, log_level.upper())
     else:
         print('Некоректний параметр логування')
