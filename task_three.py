@@ -39,9 +39,11 @@ def display_log_counts(errors_dict):
 
 def filter_logs_by_level(list, level):
     print(f'Деталі логів для рівня {level}:')
+    items_type =[]
     for item in list:
         if item['type']==level:
-            print(f'{item['date']} {item['time']} - {item['mistake']}')
+            items_type.append(item)
+    return items_type
 
 
 
@@ -54,7 +56,9 @@ try:
 
     log_level = sys.argv[2]
     if log_level.upper() in mistake_dict:
-        filter_logs_by_level(dict_lines, log_level.upper())
+        list_with_mistakes = filter_logs_by_level(dict_lines, log_level.upper())
+        for item in list_with_mistakes:
+            print(f'{item['date']} {item['time']} - {item['mistake']}')
     else:
         print('Некоректний параметр логування')
 except:
